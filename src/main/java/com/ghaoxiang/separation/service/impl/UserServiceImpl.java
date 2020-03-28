@@ -12,7 +12,7 @@ import java.util.List;
  * @author haoxiang_guo
  * @version 1.0.0
  * @ClassName UserServiceImpl.java
- * @Description User ServiceImpl
+ * @Description UserServiceImpl
  * @createTime 2020年03月28日 16:27:00
  */
 @Service

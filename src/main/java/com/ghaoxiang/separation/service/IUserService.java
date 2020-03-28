@@ -8,7 +8,7 @@ import java.util.List;
  * @author haoxiang_guo
  * @version 1.0.0
  * @ClassName UserService.java
- * @Description User Service
+ * @Description UserService
  * @createTime 2020年03月28日 16:26:00
  */
 public interface IUserService {
