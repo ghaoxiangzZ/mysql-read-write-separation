@@ -1,30 +1,60 @@
 sharding:
   jdbc:
     dataSource:
-      names: master,slave
-      master:
+      names: master0,master1,master0slave0,master1slave0
+      master0:
         type: com.alibaba.druid.pool.DruidDataSource
         driverClassName: com.mysql.jdbc.Driver
-        url: jdbc:mysql://localhost:3306/guo?useUnicode=true&characterEncoding=utf8&tinyInt1isBit=false&useSSL=false&serverTimezone=GMT
+        url: jdbc:mysql://localhost:3306/ds0?useUnicode=true&characterEncoding=utf8&tinyInt1isBit=false&useSSL=false&serverTimezone=GMT
         username: root
         password: root
         maxPoolSize: 20
-      slave:
+      master1:
         type: com.alibaba.druid.pool.DruidDataSource
         driverClassName: com.mysql.jdbc.Driver
-        url: jdbc:mysql://localhost:3307/guo?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&useSSL=false&serverTimezone=GMT
+        url: jdbc:mysql://localhost:3306/ds1?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&useSSL=false&serverTimezone=GMT
+        username: root
+        password: root
+        maxPoolSize: 20
+      master0slave0:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driverClassName: com.mysql.jdbc.Driver
+        url: jdbc:mysql://localhost:3307/ds0?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&useSSL=false&serverTimezone=GMT
+        username: root
+        password: root
+        maxPoolSize: 20
+      master1slave0:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driverClassName: com.mysql.jdbc.Driver
+        url: jdbc:mysql://localhost:3307/ds1?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&useSSL=false&serverTimezone=GMT
         username: root
         password: root
         maxPoolSize: 20
     config:
       masterslave: # 配置读写分离
         load-balance-algorithm-type: round_robin # 从库选择策略 random:随机 round_robin:轮询
-        name: db1s2
-        master-data-source-name: master
-        slave-data-source-names: slave
       props:
         sql: # 开启SQL显示以及操作的是主库还是从库
           show: true
+      sharding: # 分库分表配置
+        master-slave-rules:
+          ds0:
+            master-data-source-name: master0
+            slave-data-source-names: master0slave0
+          ds1:
+            master-data-source-name: master1
+            slave-data-source-names: master1slave0
+        default-database-strategy:
+          inline:
+            sharding-column: id
+            algorithm-expression: ds$->{id % 2} # 分库策略:id % 2 整除入ds0库，不能整除入ds1库
+        tables: # 分表策略 其中user为逻辑表 分表主要取决于age行
+          user:
+            actual-data-nodes: ds$->{0..1}.user_$->{0..1}
+            table-strategy:
+              inline:
+                sharding-column: age
+                algorithm-expression: user_$->{age % 2} # 分表策略:age % 2 整除入user_1表，不能整除入user_2表
 spring:
   main:
     allow-bean-definition-overriding: true
